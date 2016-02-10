@@ -1,0 +1,2 @@
+INDEX VERSION 1.127+/users/guest/m/megabado/workspace/spell-corrector/src/spell/.metadata/.plugins/org.eclipse.jdt.core
+1881601347.index

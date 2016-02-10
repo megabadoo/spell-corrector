@@ -1,0 +1,199 @@
+package spell;
+import java.util.*;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SpellChecker implements ISpellCorrector{
+	
+	
+	
+	TreeSet<String> editDOne, editDTwo;
+	DemoTrie myTrie;
+	
+	public SpellChecker(){
+		editDOne = new TreeSet<String>();
+		editDTwo = new TreeSet<String>();
+		myTrie = new DemoTrie();
+	}
+	
+	public void deletion(String str, int distance){
+		StringBuilder modString;
+		for(int x=0; x<str.length(); x++){
+			modString = new StringBuilder();
+			modString.append(str);
+			modString.deleteCharAt(x);
+			if(distance==1)
+			editDOne.add(modString.toString());
+			if(distance==2){
+			editDTwo.add(modString.toString());
+			//System.out.println(modString.toString());
+			}
+		}
+	}
+	
+	public void transposition(String str, int distance){
+		StringBuilder modString;	
+		for(int x=0; x<str.length()-1; x++){
+			modString = new StringBuilder();
+			modString.append(str);
+			modString.setCharAt(x, str.charAt(x+1));
+			modString.setCharAt(x+1, str.charAt(x));
+			if(distance==1)
+				editDOne.add(modString.toString());
+			if(distance==2){
+				editDTwo.add(modString.toString());
+				//System.out.println(modString.toString());
+				}
+		}
+	}
+	
+	public void alteration(String str, int distance){
+		StringBuilder modString;
+		for(int x=0; x<str.length(); x++){
+			for(int y=0; y<26; y++){
+				modString = new StringBuilder();
+				modString.append(str);
+				modString.setCharAt(x, (char)(97+y));
+				if(distance==1){
+					editDOne.add(modString.toString());
+					System.out.println(modString.toString());
+				}
+				if(distance==2){
+					editDTwo.add(modString.toString());
+				//	System.out.println(modString.toString());
+					}
+			}
+		}
+	}
+	
+	public void insertion(String str, int distance){
+		StringBuilder modString;
+		for(int x=0; x<str.length(); x++){
+			for(int y=0; y<26; y++){
+				modString = new StringBuilder();
+				modString.append(str);
+				modString.insert(x, (char)(97+y));
+				if(distance==1){
+					editDOne.add(modString.toString());
+					System.out.println(modString.toString());
+				}
+				if(distance==2){
+					editDTwo.add(modString.toString());
+					System.out.println("INSERTION" + modString.toString());
+					}
+			}
+			for(int y=0; y<26; y++){
+				modString = new StringBuilder();
+				modString.append(str);
+				modString.append((char)(97+y));
+				if(distance==1){
+					editDOne.add(modString.toString());
+				System.out.println(modString.toString());
+			}
+				if(distance==2){
+					editDTwo.add(modString.toString());
+					System.out.println(modString.toString());
+					}
+			}
+		}
+	}
+
+	@Override
+	public void useDictionary(String dictionaryFileName) throws IOException {
+		
+		
+		try{	
+			//read in input and create Image
+			FileReader fr = new FileReader(dictionaryFileName);
+			Scanner s = new Scanner(fr);
+			
+			myTrie = new DemoTrie();
+			while(s.hasNext()){
+				myTrie.add(s.next());
+			}
+			s.close();
+			fr.close();
+			
+			
+		}
+		catch(IOException e){
+			System.out.println("Error");
+		}
+	}
+
+	@Override
+	public String suggestSimilarWord(String inputWord) throws NoSimilarWordFoundException {
+		
+		String str = inputWord.toLowerCase();
+		if(myTrie.find(str)!=null){
+			//System.out.println(str.toLowerCase());
+			return str;
+		}
+		else{
+			//deletion(str, 1);
+			//transposition(str, 1);
+			//alteration(str, 1);
+			insertion(str, 1);		
+		}
+		
+		//check for suggestion with edit distance 1
+		//traverse through set
+		String suggestion = "";
+		int frequency = 0;
+		Iterator<String> i = editDOne.iterator();
+		if(i.hasNext()){
+			String next = i.next();
+			if(myTrie.find(suggestion)!=null)
+				frequency = myTrie.find(next).getValue();
+		}
+		while(i.hasNext()){
+			String next = i.next();
+
+			if(myTrie.find(next)!=null && myTrie.find(next).getValue()>frequency){
+				frequency = myTrie.find(next).getValue();
+				suggestion = next;
+			}
+		}
+		if(suggestion.length()>0)
+			return suggestion;
+		
+		
+//		Iterator<String> itr = editDOne.iterator();
+//		while(itr.hasNext()){
+//			String next = itr.next();
+//			System.out.println(next);
+//			deletion(next, 2);
+//			transposition(next, 2);
+//			alteration(next, 2);
+//			insertion(next, 2);	
+//		}
+//
+//		
+//		//check for suggestion with edit distance 2
+//				//traverse through set
+//				suggestion = "";
+//				frequency = 0;
+//				Iterator<String> iter = editDTwo.iterator();
+//				if(iter.hasNext()){
+//					String next = iter.next();
+//				//	System.out.println(next);
+//					if(myTrie.find(suggestion)!=null)
+//						frequency = myTrie.find(next).getValue();
+//				}
+//				while(iter.hasNext()){
+//					String next = iter.next();
+//					if(myTrie.find(next)!=null && myTrie.find(next).getValue()>frequency){
+//						frequency = myTrie.find(next).getValue();
+//						suggestion = next;
+//					}
+//				}
+//				if(suggestion.length()>0)
+//					return suggestion;
+				
+		throw new NoSimilarWordFoundException();
+				
+	}
+}
+
